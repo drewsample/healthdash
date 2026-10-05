@@ -10,6 +10,8 @@ targets:
     platform: iOS
     sources:
       - path: HealthDash
+        excludes:
+          - "App/Info.plist"
     info:
       path: HealthDash/App/Info.plist
     settings:
@@ -18,6 +20,7 @@ targets:
         SWIFT_VERSION: "5.9"
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
+        INFOPLIST_FILE: HealthDash/App/Info.plist
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
       configs:
         Debug:
