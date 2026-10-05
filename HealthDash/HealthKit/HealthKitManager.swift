@@ -42,7 +42,7 @@ final class HealthKitManager {
     func saveWeight(kg: Double, at date: Date) {
         guard let type = HKQuantityType.quantityType(forIdentifier: .bodyMass) else { return }
         let q = HKQuantity(unit: .gramUnit(with: .kilo), doubleValue: kg)
-        save(HKQuantitySample(type: type, quantity: q, start: date, end: date))
+        save([HKQuantitySample(type: type, quantity: q, start: date, end: date)])
     }
 
     /// One HKSample per ring event. Cumulative day counters (stepsTotal) are
