@@ -11,7 +11,10 @@ workflows:
           brew install xcodegen || true
       - name: Generate Xcode project
         script: |
+          set -e
           xcodegen generate
+          echo "=== INFOPLIST settings in generated project ==="
+          grep -i "INFOPLIST" HealthDash.xcodeproj/project.pbxproj | sort -u | head -20 || echo "NO INFOPLIST SETTINGS FOUND"
       - name: Build unsigned archive
         script: |
           set -e
