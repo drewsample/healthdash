@@ -31,11 +31,14 @@ workflows:
       - name: Verify Info.plist
         script: |
           set -e
-          echo "=== Resolved INFOPLIST build settings ==="
-          xcodebuild -project HealthDash.xcodeproj -scheme HealthDash -configuration Release -showBuildSettings 2>/dev/null | grep -i "INFOPLIST" | sort -u
           APP_PATH="$CM_BUILD_DIR/HealthDash.xcarchive/Products/Applications/HealthDash.app"
-          echo "=== Built Info.plist keys ==="
-          plutil -p "$APP_PATH/Info.plist" | grep -oE '"[A-Za-z0-9]+" =>' | sort -u | head -40
+          echo "=== Injecting usage descriptions directly ==="
+          /usr/libexec/PlistBuddy -c "Add :NSHealthShareUsageDescription string 'HealthDash writes your weight, steps, heart rate, SpO2, HRV, and sleep to Apple Health so they appear in the Health app.'" "$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :NSHealthUpdateUsageDescription string 'HealthDash writes your weight, steps, heart rate, SpO2, HRV, and sleep to Apple Health so they appear in the Health app.'" "$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :NSBluetoothAlwaysUsageDescription string 'HealthDash uses Bluetooth to read your scale and smart ring locally. No data leaves your phone.'" "$APP_PATH/Info.plist"
+          /usr/libexec/PlistBuddy -c "Add :NSBluetoothPeripheralUsageDescription string 'HealthDash uses Bluetooth to read your scale and smart ring locally. No data leaves your phone.'" "$APP_PATH/Info.plist"
+          echo "=== Verifying ==="
+          plutil -p "$APP_PATH/Info.plist" | grep -iE "NSHealth|NSBluetooth" || (echo "INJECTION FAILED"; exit 1)
       - name: Package unsigned IPA
         script: |
           set -e
