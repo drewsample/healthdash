@@ -1,0 +1,39 @@
+workflows:
+  unsigned-ipa:
+    name: Unsigned IPA (SideStore)
+    max_build_duration: 60
+    environment:
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install XcodeGen
+        script: |
+          brew install xcodegen || true
+      - name: Generate Xcode project
+        script: |
+          xcodegen generate
+      - name: Build unsigned archive
+        script: |
+          set -e
+          xcodebuild \
+            -project HealthDash.xcodeproj \
+            -scheme HealthDash \
+            -configuration Release \
+            -archivePath "$CM_BUILD_DIR/HealthDash.xcarchive" \
+            -destination 'generic/platform=iOS' \
+            archive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+      - name: Package unsigned IPA
+        script: |
+          set -e
+          APP_PATH="$CM_BUILD_DIR/HealthDash.xcarchive/Products/Applications/HealthDash.app"
+          mkdir -p "$CM_BUILD_DIR/Payload"
+          cp -R "$APP_PATH" "$CM_BUILD_DIR/Payload/"
+          cd "$CM_BUILD_DIR"
+          zip -qry HealthDash-unsigned.ipa Payload
+          rm -rf Payload
+          ls -la HealthDash-unsigned.ipa
+    artifacts:
+      - HealthDash-unsigned.ipa

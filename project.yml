@@ -1,0 +1,51 @@
+name: HealthDash
+options:
+  bundleIdPrefix: com.healthdash
+  deploymentTarget:
+    iOS: "17.0"
+
+targets:
+  HealthDash:
+    type: application
+    platform: iOS
+    sources:
+      - path: HealthDash
+    info:
+      properties:
+        CFBundleName: HealthDash
+        CFBundleDisplayName: HealthDash
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        UILaunchScreen: {}
+        UIRequiredDeviceCapabilities: [bluetooth-le]
+        UIBackgroundModes: [bluetooth-central]
+        NSBluetoothAlwaysUsageDescription: "HealthDash uses Bluetooth to read your scale and smart ring locally. No data leaves your phone."
+        NSBluetoothPeripheralUsageDescription: "HealthDash uses Bluetooth to read your scale and smart ring locally. No data leaves your phone."
+        NSHealthShareUsageDescription: "HealthDash writes your weight, steps, heart rate, SpO2, HRV, and sleep to Apple Health so they appear in the Health app."
+        NSHealthUpdateUsageDescription: "HealthDash writes your weight, steps, heart rate, SpO2, HRV, and sleep to Apple Health so they appear in the Health app."
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.healthdash.app
+        SWIFT_VERSION: "5.9"
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+      configs:
+        Debug:
+          CODE_SIGN_IDENTITY: "-"
+          CODE_SIGNING_ALLOWED: YES
+          CODE_SIGNING_REQUIRED: NO
+        Release:
+          CODE_SIGN_IDENTITY: "-"
+          CODE_SIGNING_ALLOWED: YES
+          CODE_SIGNING_REQUIRED: NO
+
+schemes:
+  HealthDash:
+    build:
+      targets:
+        HealthDash: all
+    run:
+      config: Debug
+    archive:
+      config: Release
