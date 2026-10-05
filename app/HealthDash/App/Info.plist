@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleName</key>
+	<string>HealthDash</string>
+	<key>CFBundleDisplayName</key>
+	<string>HealthDash</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>bluetooth-le</string>
+	</array>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>bluetooth-central</string>
+	</array>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>HealthDash uses Bluetooth to read your scale and smart ring locally. No data leaves your phone.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>HealthDash uses Bluetooth to read your scale and smart ring locally. No data leaves your phone.</string>
+	<key>NSHealthShareUsageDescription</key>
+	<string>HealthDash writes your weight, steps, heart rate, SpO2, HRV, and sleep to Apple Health so they appear in the Health app.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>HealthDash writes your weight, steps, heart rate, SpO2, HRV, and sleep to Apple Health so they appear in the Health app.</string>
+</dict>
+</plist>
