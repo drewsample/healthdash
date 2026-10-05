@@ -24,8 +24,7 @@ final class ScaleScanner: NSObject, ObservableObject {
 
     override init() {
         super.init()
-        central = CBCentralManager(delegate: self, queue: nil,
-                                   options: [CBCentralManagerOptionRestoreIdentifierKey: "com.healthdash.scale-restore"])
+        central = CBCentralManager(delegate: self, queue: nil)
     }
 
     func attach(_ context: ModelContext) { modelContext = context }
@@ -73,12 +72,6 @@ extension ScaleScanner: CBCentralManagerDelegate {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         bluetoothState = central.state
         if central.state == .poweredOn, isScanning { start() }
-    }
-
-    func centralManager(_ central: CBCentralManager,
-                        willRestoreState dict: [String: Any]) {
-        // Passive scanning needs no restoration beyond restarting the scan.
-        if isScanning { start() }
     }
 
     func centralManager(_ central: CBCentralManager,

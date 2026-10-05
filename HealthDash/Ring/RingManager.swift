@@ -59,8 +59,7 @@ final class RingManager: NSObject, ObservableObject {
 
     override init() {
         super.init()
-        central = CBCentralManager(delegate: self, queue: nil,
-                                   options: [CBCentralManagerOptionRestoreIdentifierKey: "com.healthdash.ring-restore"])
+        central = CBCentralManager(delegate: self, queue: nil)
     }
 
     func attach(_ context: ModelContext) {
