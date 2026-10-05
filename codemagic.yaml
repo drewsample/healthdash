@@ -31,11 +31,11 @@ workflows:
       - name: Verify Info.plist
         script: |
           set -e
+          echo "=== Resolved INFOPLIST build settings ==="
+          xcodebuild -project HealthDash.xcodeproj -scheme HealthDash -configuration Release -showBuildSettings 2>/dev/null | grep -i "INFOPLIST" | sort -u
           APP_PATH="$CM_BUILD_DIR/HealthDash.xcarchive/Products/Applications/HealthDash.app"
           echo "=== Built Info.plist keys ==="
           plutil -p "$APP_PATH/Info.plist" | grep -oE '"[A-Za-z0-9]+" =>' | sort -u | head -40
-          echo "=== Checking for our keys ==="
-          plutil -p "$APP_PATH/Info.plist" | grep -iE "NSHealth|NSBluetooth|CFBundleName" || echo "KEYS MISSING FROM BUILT PLIST"
       - name: Package unsigned IPA
         script: |
           set -e
