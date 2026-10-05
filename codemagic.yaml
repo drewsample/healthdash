@@ -25,6 +25,12 @@ workflows:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY=""
+      - name: Verify Info.plist
+        script: |
+          set -e
+          APP_PATH="$CM_BUILD_DIR/HealthDash.xcarchive/Products/Applications/HealthDash.app"
+          echo "=== Checking for usage descriptions ==="
+          plutil -p "$APP_PATH/Info.plist" | grep -iE "NSHealth|NSBluetooth" || echo "KEYS MISSING FROM BUILT PLIST"
       - name: Package unsigned IPA
         script: |
           set -e
