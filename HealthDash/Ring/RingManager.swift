@@ -445,7 +445,7 @@ extension RingManager: CBCentralManagerDelegate {
         connectedName = peripheral.name
         state = .connecting
         syncDetail = "Discovering services…"
-        peripheral.discoverServices([YCBTUUIDs.service])
+        peripheral.discoverServices(nil)
     }
 
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
@@ -462,9 +462,12 @@ extension RingManager: CBCentralManagerDelegate {
 
 extension RingManager: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
-        guard let service = peripheral.services?.first(where: { $0.uuid == YCBTUUIDs.service }) else {
-            errorMessage = "Ring doesn't expose the expected service."
-            disconnect(); return
+        let services = peripheral.services ?? []
+        guard let service = services.first(where: { $0.uuid == YCBTUUIDs.service }) else {
+            let uuids = services.map { $0.uuid.uuidString }.joined(separator: "\n")
+            errorMessage = "Ring services found:\n\(uuids)"
+            syncDetail = ""
+            return
         }
         peripheral.discoverCharacteristics([YCBTUUIDs.command, YCBTUUIDs.stream], for: service)
     }
