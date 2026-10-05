@@ -8,7 +8,8 @@ import SwiftData
 /// Live readings update `currentKg` immediately; a reading is persisted only
 /// when it's stable-different from the last stored one (avoids flooding the
 /// store with one row per advertisement).
-@MainActor
+///
+/// Not @MainActor: see RingManager — same CoreBluetooth delegate constraint.
 final class ScaleScanner: NSObject, ObservableObject {
     @Published var isScanning = false
     @Published var currentKg: Double?
@@ -57,9 +58,13 @@ final class ScaleScanner: NSObject, ObservableObject {
            abs(lastKg - reading.kg) < 0.05, now.timeIntervalSince(lastAt) < 120 { return }
         lastPersistedKg = reading.kg
         lastPersistedAt = now
-        modelContext?.insert(WeightReading(timestamp: now, kg: reading.kg,
-                                           impedanceOhms: reading.impedanceOhms))
-        try? modelContext?.save()
+        if let ctx = modelContext {
+            MainActor.assumeIsolated {
+                ctx.insert(WeightReading(timestamp: now, kg: reading.kg,
+                                         impedanceOhms: reading.impedanceOhms))
+                try? ctx.save()
+            }
+        }
         HealthKitManager.shared.saveWeight(kg: reading.kg, at: now)
     }
 }

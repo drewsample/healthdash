@@ -13,7 +13,11 @@ struct ScannedDevice: Identifiable, Hashable {
 /// Owns the TK5 ring link: scan → connect → handshake → live stream → history
 /// sync. All YCBT wire details live in YCBT.swift / YCBTCommands / YCBTDecoder;
 /// this is the CoreBluetooth state machine and the SwiftData sink.
-@MainActor
+///
+/// Not @MainActor: CoreBluetooth delegate requirements are nonisolated, so the
+/// delegate methods can't be actor-isolated. All callbacks arrive on the main
+/// thread (central created with queue: nil), and SwiftData access goes through
+/// MainActor.assumeIsolated — synchronous, so the command queue stays ordered.
 final class RingManager: NSObject, ObservableObject {
     enum State: String {
         case idle, scanning, connecting, syncing, ready
@@ -66,9 +70,11 @@ final class RingManager: NSObject, ObservableObject {
     /// The profile row, read fresh at handshake time (it may be created after attach).
     private func currentProfile() -> Profile? {
         guard let ctx = modelContext else { return nil }
-        var d = FetchDescriptor<Profile>()
-        d.fetchLimit = 1
-        return try? ctx.fetch(d).first
+        return MainActor.assumeIsolated {
+            var d = FetchDescriptor<Profile>()
+            d.fetchLimit = 1
+            return try? ctx.fetch(d).first
+        }
     }
 
     // MARK: - Scan / connect
@@ -163,7 +169,9 @@ final class RingManager: NSObject, ObservableObject {
             state = .ready
             lastSync = Date()
             syncDetail = ""
-            try? modelContext?.save()
+            if let ctx = modelContext {
+                MainActor.assumeIsolated { try? ctx.save() }
+            }
             return
         }
         activeType = syncTypes.removeFirst()
@@ -309,10 +317,11 @@ final class RingManager: NSObject, ObservableObject {
 
     private func persist(_ events: [RingEvent], source: String) {
         guard let ctx = modelContext else { return }
-        let now = Date()
         var hkSamples: [HKSample] = []
-        defer { HealthKitManager.shared.save(hkSamples) }
-        for e in events {
+        // Synchronous main-thread hop: keeps the command queue ordered, unlike Task.
+        MainActor.assumeIsolated {
+            let now = Date()
+            for e in events {
             // Drop anything absurdly old or from the future (mis-stamped records).
             let ts: Date
             switch e {
@@ -357,9 +366,12 @@ final class RingManager: NSObject, ObservableObject {
                                value: Double(pct), source: source, max: false)
             }
         }
+        }
+        HealthKitManager.shared.save(hkSamples)
     }
 
     /// Insert unless a sample of the same kind+timestamp already exists.
+    @MainActor
     private func insertOnce(_ ctx: ModelContext, kind: SampleKind, timestamp: Date, value: Double, source: String) {
         let kindString = kind.rawValue
         var d = FetchDescriptor<MetricSample>(
@@ -371,6 +383,7 @@ final class RingManager: NSObject, ObservableObject {
     }
 
     /// One row per kind per day; `max:true` keeps the highest (cumulative counters).
+    @MainActor
     private func upsertDaySample(_ ctx: ModelContext, kind: SampleKind, day: Date,
                                  value: Double, source: String, max: Bool) {
         let kindString = kind.rawValue
@@ -384,6 +397,7 @@ final class RingManager: NSObject, ObservableObject {
         }
     }
 
+    @MainActor
     private func upsertSleep(_ ctx: ModelContext, start: Date, stages: [UInt8]) {
         let end = start.addingTimeInterval(Double(stages.count) * 60)
         let lo = start.addingTimeInterval(-3600), hi = start.addingTimeInterval(3600)
@@ -499,9 +513,11 @@ extension RingManager: CBPeripheralDelegate {
 
     private func latestWeightKg() -> Double? {
         guard let ctx = modelContext else { return nil }
-        var d = FetchDescriptor<WeightReading>(sortBy: [SortDescriptor(\.timestamp, order: .reverse)])
-        d.fetchLimit = 1
-        return try? ctx.fetch(d).first?.kg
+        return MainActor.assumeIsolated {
+            var d = FetchDescriptor<WeightReading>(sortBy: [SortDescriptor(\.timestamp, order: .reverse)])
+            d.fetchLimit = 1
+            return try? ctx.fetch(d).first?.kg
+        }
     }
 
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
